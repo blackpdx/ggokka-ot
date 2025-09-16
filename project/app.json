@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "HJ_KKO",
+    "slug": "hjkko",
+    "owner": "hyunjin_9953",
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true },
+    "extra": { "eas": { "projectId": "50919dcd-9be8-4a33-9607-128de17a9649" } }
+  }
+}
