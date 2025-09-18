@@ -1,9 +1,9 @@
 // App.js
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAppFonts } from './lib/useAppFonts';
 
-// 피그마 화면들 (모두 RN용, default export)
+// 화면들
 import AuthScreen from './components/figma/AuthScreen';
 import BodyPhotoSetup from './components/figma/BodyPhotoSetup';
 import DailyOutfitRecommendation from './components/figma/DailyOutfitRecommendation';
@@ -11,21 +11,24 @@ import HomeScreen from './components/figma/homescreen';
 import ShoppingRecommendations from './components/figma/ShoppingRecommendations';
 import SplashScreen from './components/figma/SplashScreen';
 import StyleAnalysisDetail from './components/figma/StyleAnalysisDetail';
-import TodayCurationDetail from './components/figma/TodayCurationDetail'; // ← 오늘의 큐레이션 상세
 import UserProfileSetup from './components/figma/UserProfileSetup';
 import WardrobeManagement from './components/figma/WardrobeManagement';
 import WardrobeSetup from './components/figma/WardrobeSetup';
 
-// 임시 화면(아직 없는 단계용)
+// 임시
 import PlaceholderScreen from './screens/PlaceholderScreen';
 
 export default function App() {
   const fontsLoaded = useAppFonts();
-  const [step, setStep] = useState('splash'); // 스플래시부터 시작
+
+  // 온보딩 흐름
+  const [step, setStep] = useState('splash');
+
+  // 회원 이름(회원가입 시 저장 → 홈 인사말에 표시)
+  const [userName, setUserName] = useState('사용자');
 
   const titles = useMemo(
     () => ({
-      // 메인
       home: '홈',
       'today-curation': '오늘의 큐레이션',
       'daily-outfit': '오늘 뭐 입지?',
@@ -44,6 +47,15 @@ export default function App() {
     []
   );
 
+  // 회원가입 단계 완료 시 이름 받아서 저장
+  const handleProfileComplete = useCallback((payload) => {
+    // UserProfileSetup에서 onComplete({ name }) 처럼 넘겨주면 반영.
+    if (payload && typeof payload.name === 'string' && payload.name.trim()) {
+      setUserName(payload.name.trim());
+    }
+    setStep('body-photo-setup');
+  }, []);
+
   if (!fontsLoaded) return null;
 
   return (
@@ -51,9 +63,18 @@ export default function App() {
       {step === 'splash' ? (
         <SplashScreen onGetStarted={() => setStep('auth')} />
       ) : step === 'auth' ? (
-        <AuthScreen onAuth={() => setStep('user-profile-setup')} />
+        // AuthScreen은 아래 3개 중 **아무거나** 호출해도 되도록 백워드 호환:
+        // - onLogin(): 로그인 성공시 → 바로 홈
+        // - onSignup(): 회원가입 플로우 시작 → 프로필 설정
+        // - onAuth(): (구버전) 기본은 회원가입 플로우로 간주
+        <AuthScreen
+          onLogin={() => setStep('home')}
+          onSignup={() => setStep('user-profile-setup')}
+          onAuth={() => setStep('user-profile-setup')}
+        />
       ) : step === 'user-profile-setup' ? (
-        <UserProfileSetup onComplete={() => setStep('body-photo-setup')} />
+        // onComplete에서 { name } 넘겨주면 App이 인사말에 사용
+        <UserProfileSetup onComplete={(data) => handleProfileComplete(data)} />
       ) : step === 'body-photo-setup' ? (
         <BodyPhotoSetup onComplete={() => setStep('wardrobe-setup')} />
       ) : step === 'wardrobe-setup' ? (
@@ -66,21 +87,17 @@ export default function App() {
         <StyleAnalysisDetail onBack={() => setStep('home')} />
       ) : step === 'shopping' ? (
         <ShoppingRecommendations onBack={() => setStep('home')} />
-      ) : step === 'today-curation' ? (
-        <TodayCurationDetail onBack={() => setStep('home')} />
       ) : step === 'home' ? (
         <HomeScreen
           onNavigate={(s) => setStep(s)}
-          userName="야"
+          userName={userName}
           lovedOutfitsCount={3}
           blockedOutfitsCount={1}
         />
       ) : (
-        // 아직 구현 안 된 단계들: 임시 화면으로 표시
         <PlaceholderScreen
           title={titles[step] || String(step)}
           onBack={() => {
-            // 온보딩 흐름 자연스럽게 뒤로
             if (step === 'wardrobe-setup') setStep('body-photo-setup');
             else if (step === 'user-profile-setup' || step === 'body-photo-setup') setStep('auth');
             else setStep('home');

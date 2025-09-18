@@ -1,48 +1,66 @@
 // screens/PlaceholderScreen.tsx
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { getUsers } from '@/lib/api';
 
-export default function PlaceholderScreen({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
+export default function PlaceholderScreen() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getUsers();
+        setUsers(response.data);
+      } catch (e) {
+        setError('데이터를 불러오는 데 실패했습니다.');
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+        <Text>데이터 로딩 중...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text>{error}</Text>
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Pressable onPress={onBack} style={styles.backBtn}>
-          <Text style={styles.backText}>← 뒤로</Text>
-        </Pressable>
-        <Text style={styles.title}>{title}</Text>
-        <View style={{ width: 60 }} />
-      </View>
-
-      <View style={styles.body}>
-        <Text style={styles.info}>여기는 "{title}" 화면 자리야.</Text>
-        <Text style={styles.sub}>나중에 실제 기능/디자인으로 교체하면 됨.</Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>DB 사용자 목록</Text>
+      <FlatList
+        data={users}
+        keyExtractor={(item: any) => item.id.toString()}
+        renderItem={({ item }: { item: any }) => (
+          <View style={styles.item}>
+            <Text style={styles.itemText}>{item.username} ({item.email})</Text>
+          </View>
+        )}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-  backBtn: { paddingVertical: 6, paddingHorizontal: 8 },
-  backText: { fontSize: 16, color: '#111827' },
-  title: { fontSize: 16, fontWeight: '600', color: '#111827' },
-  body: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
-  info: { fontSize: 16, color: '#111827' },
-  sub: { fontSize: 13, color: '#6B7280' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  title: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginVertical: 15 },
+  item: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  itemText: { fontSize: 18 },
 });

@@ -1,132 +1,152 @@
 // components/figma/SplashScreen.tsx
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
+  Dimensions,
   ImageBackground,
+  Platform,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export type SplashScreenProps = {
-  onGetStarted: () => void;
-};
+export type SplashScreenProps = { onGetStarted: () => void };
+
+// 프로젝트 루트(HJ_KKO) 바로 아래에 있는 "시작화면.png"
+const splashImage = require('../../시작화면.png');
+
+const { height: H } = Dimensions.get('window');
+
+// 이미지를 "살짝 아래로" 내리고 + 위/아래 흰줄 방지를 위해 약간 더 확대
+const SHIFT_Y = Math.round(H * 0.02); // 화면 높이의 2% 만큼 아래로
+const SCALE   = 1.12;                  // 12% 확대(상하단 여백 방지)
 
 export default function SplashScreen({ onGetStarted }: SplashScreenProps) {
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* 배경 이미지 + 오버레이 */}
-      <View style={StyleSheet.absoluteFill}>
-        <ImageBackground
-          source={{
-            uri: 'https://images.unsplash.com/photo-1742281913003-5ed06b3cd6e8?auto=format&fit=crop&w=1200&q=80',
-          }}
-          resizeMode="cover"
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={styles.overlay} />
-      </View>
+    <View style={styles.root}>
+      {/* 상단 흰색 줄 숨기기 위해 이미지가 상태바 밑으로 깔리게 설정 */}
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-      {/* 콘텐츠 */}
-      <View style={styles.center}>
-        <View style={styles.card}>
-          <View style={{ gap: 16 }}>
-            <View style={{ gap: 12 }}>
-              <Text style={styles.brand}>꼬까옷</Text>
-              <View style={styles.whiteLine} />
-              <Text style={styles.catch}>AI와 함께 키우는 패션 감각</Text>
-            </View>
+      <ImageBackground
+        source={splashImage}
+        resizeMode="cover"
+        style={styles.bgAbs}
+        imageStyle={{ transform: [{ translateY: SHIFT_Y }, { scale: SCALE }] }}
+      />
+
+      {/* 버튼/카드는 안전영역의 '하단'만 고려해서 올림 */}
+      <SafeAreaView edges={['bottom']} style={styles.overlay}>
+        {/* 하단 카드 */}
+        <View style={styles.bottomWrap}>
+          <View style={styles.card}>
+            {/* 내부에 또 보이는 네모 래퍼 제거, 요소만 배치 */}
+            <Text style={styles.title}>
+              꼬까옷에 오신 것을{'\n'}환영합니다
+            </Text>
+
+            <Text style={styles.sub}>
+              AI가 당신의 체형과 취향을{'\n'}
+              분석하여 완벽한 스타일링을{'\n'}
+              제안해드립니다
+            </Text>
 
             <View style={styles.bullets}>
-              <View style={styles.bulletRow}>
-                <View style={styles.dot} />
-                <Text style={styles.bulletText}>개인 맞춤 스타일 큐레이션</Text>
-              </View>
-              <View style={styles.bulletRow}>
-                <View style={styles.dot} />
-                <Text style={styles.bulletText}>지능형 가상 옷장 시스템</Text>
-              </View>
-              <View style={styles.bulletRow}>
-                <View style={styles.dot} />
-                <Text style={styles.bulletText}>체형별 전문 스타일링</Text>
-              </View>
+              <View style={styles.dot} />
+              <Text style={styles.bullet}>실시간 옷장 분류</Text>
+              <View style={styles.dot} />
+              <Text style={styles.bullet}>맞춤 코디 추천</Text>
             </View>
-          </View>
 
-          <Pressable onPress={onGetStarted} style={styles.cta}>
-            <Text style={styles.ctaText}>시작하기</Text>
-          </Pressable>
+            <Pressable
+              onPress={onGetStarted}
+              // 내부 사각형 느낌을 줄 수 있는 ripple도 최소화하거나 필요 없으면 제거해도 됨
+              android_ripple={{ color: 'rgba(255,255,255,0.12)' }}
+              style={styles.cta}
+            >
+              <Text style={styles.ctaText}>시작하기</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+  root: { flex: 1, backgroundColor: 'transparent' },
 
-  center: {
+  // 배경 이미지를 화면 전체(상단 상태바 영역 포함)로 깔기
+  bgAbs: { ...StyleSheet.absoluteFillObject },
+
+  overlay: { flex: 1 },
+
+  bottomWrap: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+
+  // 반투명 카드(하나만)
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.68)',
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 14,
+    // 부드러운 그림자
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+    overflow: 'hidden', // 내부 또 다른 네모/리플 겹침 느낌 차단
+  },
+
+  title: {
+    textAlign: 'center',
+    fontSize: 20,
+    color: '#111827',
+    letterSpacing: 0.3,
+    fontFamily: 'PlayfairDisplay-SemiBold',
+    marginBottom: 10,
+  },
+  sub: {
+    textAlign: 'center',
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#374151',
+    fontFamily: 'Inter',
+    fontWeight: '300',
+    marginTop: 2,
+    marginBottom: 6,
+  },
+
+  bullets: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    gap: 12,
+    marginBottom: 8,
   },
-
-  card: {
-    width: '100%',
-    maxWidth: 360,
-    gap: 24,
-    alignItems: 'center',
-  },
-
-  brand: {
-    textAlign: 'center',
-    fontSize: 32,
-    letterSpacing: 2, // tracking-[0.2em] 근사치
-    color: '#FFFFFF',
-    fontWeight: '300',
-    fontFamily: 'PlayfairDisplay-SemiBold', // 폰트 로딩했으면 적용됨
-  },
-  whiteLine: {
-    width: 64,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    alignSelf: 'center',
-  },
-  catch: {
-    textAlign: 'center',
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 18,
-    fontWeight: '300',
-    lineHeight: 24,
-    fontFamily: 'Inter',
-  },
-
-  bullets: { gap: 8, alignItems: 'center' },
-  bulletRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dot: { width: 4, height: 4, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.6)' },
-  bulletText: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 13,
-    fontWeight: '300',
-    fontFamily: 'Inter',
-  },
+  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#111' },
+  bullet: { fontSize: 13, color: '#374151', fontFamily: 'Inter', fontWeight: '300' },
 
   cta: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 1,
-    paddingVertical: 14,
+    marginTop: 6,
+    backgroundColor: '#111111',
+    borderRadius: 14,
+    height: 48,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   ctaText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    letterSpacing: 0.5,
-    fontWeight: '300',
+    fontSize: 16,
+    letterSpacing: 0.3,
     fontFamily: 'Inter',
+    fontWeight: Platform.OS === 'ios' ? '600' : '500',
   },
 });
