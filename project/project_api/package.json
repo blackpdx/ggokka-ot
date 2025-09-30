@@ -1,7 +1,7 @@
 {
   "name": "project_api",
   "version": "1.0.0",
-  "description": "",
+  "description": "꼬까옷(Kkokkaot) 서비스의 API 서버입니다",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

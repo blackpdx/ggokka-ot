@@ -1,30 +1,18 @@
-// components/figma/ShoppingRecommendations.tsx
-import {
-    ArrowLeft,
-    ExternalLink,
-    Filter,
-    Heart,
-    Search,
-    ShoppingBag,
-    Star,
-} from 'lucide-react-native';
+// project/components/figma/ShoppingRecommendations.tsx
+import { ExternalLink, Filter, Heart, Search, ShoppingBag, Star } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import {
-    Image,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppHeader from '../common/AppHeader';
+import BottomNavBar from '../common/BottomNavBar';
+import { MainScreen } from '../../App';
 
 export type ShoppingRecommendationsProps = {
   onBack: () => void;
+  onNavigate: (step: MainScreen) => void;
 };
 
-export default function ShoppingRecommendations({ onBack }: ShoppingRecommendationsProps) {
+export default function ShoppingRecommendations({ onBack, onNavigate }: ShoppingRecommendationsProps) {
   const [selectedCategory, setSelectedCategory] = useState<'recommended' | 'trending' | 'missing' | 'seasonal'>('recommended');
   const [priceRange, setPriceRange] = useState<'all' | 'under50' | '50to100' | '100to200' | 'over200'>('all');
 
@@ -63,7 +51,7 @@ export default function ShoppingRecommendations({ onBack }: ShoppingRecommendati
         rating: 4.8,
         reviews: 127,
         matchScore: 95,
-        reason: '당신의 미니멀 스타일과 완벽 매치',
+        reason: '주인님의 미니멀 스타일과 완벽 매치',
         tags: ['베스트셀러', '리뷰 좋음'],
         inStock: true,
         fastShipping: true,
@@ -102,57 +90,29 @@ export default function ShoppingRecommendations({ onBack }: ShoppingRecommendati
         inStock: false,
         fastShipping: false,
       },
-      {
-        id: 4,
-        image:
-          'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=800&q=80',
-        name: '화이트 레더 스니커즈',
-        brand: 'Common Projects',
-        price: '389,000원',
-        originalPrice: null,
-        discount: 0,
-        rating: 4.7,
-        reviews: 156,
-        matchScore: 90,
-        reason: '캐주얼한 룩에 모던함을 더해줌',
-        tags: ['스테디셀러'],
-        inStock: true,
-        fastShipping: true,
-      },
     ],
     []
   );
 
   const filteredItems = recommendedItems;
 
+  const HeaderRightAction = (
+    <Pressable style={[ styles.primaryBtn, { paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+      <ShoppingBag size={16} color="#FFF" />
+      <Text style={styles.primaryBtnText}>장바구니</Text>
+    </Pressable>
+  );
+
   return (
     <SafeAreaView style={styles.safe}>
-      {/* 헤더 */}
-      <View style={styles.headerWrap}>
-        <View style={styles.headerRow}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-            <Pressable onPress={onBack} style={styles.iconBtn}>
-              <ArrowLeft size={20} color="#111" />
-            </Pressable>
-            <View>
-              <Text style={styles.title}>쇼핑 추천</Text>
-              <Text style={styles.subtitle}>AI 맞춤 상품 추천</Text>
-            </View>
-          </View>
-          <Pressable
-            style={[
-              styles.primaryBtn,
-              { paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
-            ]}
-          >
-            <ShoppingBag size={16} color="#FFF" />
-            <Text style={styles.primaryBtnText}>장바구니</Text>
-          </Pressable>
-        </View>
-      </View>
+      <AppHeader
+        title="쇼핑 추천"
+        subtitle="AI 맞춤 상품 추천"
+        onBack={onBack}
+        rightAction={HeaderRightAction}
+      />
 
       <ScrollView contentContainerStyle={styles.screenPad}>
-        {/* 검색 */}
         <View style={{ position: 'relative' }}>
           <Search size={16} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
@@ -165,7 +125,6 @@ export default function ShoppingRecommendations({ onBack }: ShoppingRecommendati
           </Pressable>
         </View>
 
-        {/* 카테고리 */}
         <View style={{ gap: 8 }}>
           <Text style={styles.sectionLabel}>카테고리</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -188,37 +147,10 @@ export default function ShoppingRecommendations({ onBack }: ShoppingRecommendati
           </ScrollView>
         </View>
 
-        {/* 가격대 */}
-        <View style={{ gap: 8 }}>
-          <Text style={styles.sectionLabel}>가격대</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={{ flexDirection: 'row', gap: 8, paddingBottom: 4 }}>
-              {priceRanges.map((r) => (
-                <Pressable
-                  key={r.id}
-                  onPress={() => setPriceRange(r.id as any)}
-                  style={[
-                    styles.chipSm,
-                    priceRange === r.id ? styles.chipActive : styles.chipIdle,
-                  ]}
-                >
-                  <Text style={[styles.chipSmText, priceRange === r.id && styles.chipTextActive]}>
-                    {r.name}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* 추천 상품 */}
         <View style={{ gap: 12 }}>
           <View style={styles.rowBetween}>
             <Text style={styles.sectionTitle}>
-              {selectedCategory === 'recommended' && 'AI 맞춤 추천'}
-              {selectedCategory === 'trending' && '지금 트렌드'}
-              {selectedCategory === 'missing' && '부족한 아이템'}
-              {selectedCategory === 'seasonal' && '시즌 필수템'}
+              {categories.find(c => c.id === selectedCategory)?.name || 'AI 맞춤 추천'}
             </Text>
             <Text style={styles.countText}>{filteredItems.length}개 상품</Text>
           </View>
@@ -229,85 +161,66 @@ export default function ShoppingRecommendations({ onBack }: ShoppingRecommendati
                 <View style={styles.thumbWrap}>
                   <Image source={{ uri: item.image }} style={styles.thumb} />
                   {item.discount > 0 && (
-                    <View style={[styles.badge, { position: 'absolute', top: 8, left: 8, backgroundColor: '#EF4444' }]}>
-                      <Text style={[styles.badgeText, { color: '#FFF' }]}>-{item.discount}%</Text>
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.badgeTextWhite}>-{item.discount}%</Text>
                     </View>
                   )}
                   {!item.inStock && (
                     <View style={styles.soldoutOverlay}>
-                      <Text style={{ color: '#FFF', fontSize: 12, fontFamily: 'Inter', fontWeight: '600' }}>품절</Text>
+                      <Text style={styles.badgeTextWhite}>품절</Text>
                     </View>
                   )}
                 </View>
 
                 <View style={styles.cardContent}>
-                  <View style={{ gap: 6 }}>
-                    <View style={styles.rowBetween}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.itemName}>{item.name}</Text>
-                        <Text style={styles.itemBrand}>{item.brand}</Text>
-                      </View>
-                      <Pressable hitSlop={8}>
-                        <Heart size={16} color="#9CA3AF" />
-                      </Pressable>
+                  <View style={styles.rowBetween}>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text style={styles.itemName}>{item.name}</Text>
+                      <Text style={styles.itemBrand}>{item.brand}</Text>
                     </View>
+                    <Pressable hitSlop={8}>
+                      <Heart size={16} color="#9CA3AF" />
+                    </Pressable>
+                  </View>
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Star size={14} color="#F59E0B" />
-                        <Text style={styles.metaText}>{item.rating}</Text>
-                        <Text style={styles.metaSub}>({item.reviews})</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <View
-                          style={[
-                            styles.dot,
-                            { backgroundColor: item.matchScore >= 90 ? '#22C55E' : '#EAB308' },
-                          ]}
-                        />
-                        <Text style={styles.metaText}>매치 {item.matchScore}%</Text>
-                      </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={styles.metaRow}>
+                      <Star size={14} color="#F59E0B" fill="#F59E0B" />
+                      <Text style={styles.metaText}>{item.rating}</Text>
+                      <Text style={styles.metaSub}>({item.reviews})</Text>
                     </View>
+                    <View style={styles.metaRow}>
+                      <View
+                        style={[
+                          styles.dot,
+                          { backgroundColor: item.matchScore >= 90 ? '#22C55E' : '#EAB308' },
+                        ]}
+                      />
+                      <Text style={styles.metaText}>매치 {item.matchScore}%</Text>
+                    </View>
+                  </View>
 
-                    <Text style={styles.reasonText}>{item.reason}</Text>
+                  <Text style={styles.reasonText}>{item.reason}</Text>
 
-                    <View style={styles.rowBetween}>
-                      <View style={{ gap: 4 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                          <Text style={styles.price}>{item.price}</Text>
-                          {item.originalPrice ? (
-                            <Text style={styles.priceStrike}>{item.originalPrice}</Text>
-                          ) : null}
-                        </View>
-                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                          {item.tags.map((t, i) => (
-                            <View key={i} style={[styles.badge, styles.badgeOutline]}>
-                              <Text style={styles.badgeOutlineText}>{t}</Text>
-                            </View>
-                          ))}
-                          {item.fastShipping && (
-                            <View style={[styles.badge, { backgroundColor: '#DBEAFE' }]}>
-                              <Text style={[styles.badgeText, { color: '#1D4ED8' }]}>빠른배송</Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-
+                  <View style={styles.rowBetween}>
+                    <View style={{ gap: 4 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Pressable style={[styles.ghostBtn, { paddingHorizontal: 10, paddingVertical: 8 }]}>
-                          <ExternalLink size={12} color="#111" />
-                        </Pressable>
-                        <Pressable
-                          disabled={!item.inStock}
-                          style={[
-                            styles.primaryBtn,
-                            { paddingHorizontal: 12, paddingVertical: 8, opacity: item.inStock ? 1 : 0.5 },
-                          ]}
-                        >
-                          <Text style={styles.primaryBtnText}>{item.inStock ? '장바구니' : '품절'}</Text>
-                        </Pressable>
+                        <Text style={styles.price}>{item.price}</Text>
+                        {item.originalPrice ? (
+                          <Text style={styles.priceStrike}>{item.originalPrice}</Text>
+                        ) : null}
                       </View>
                     </View>
+
+                    <Pressable
+                      disabled={!item.inStock}
+                      style={[
+                        styles.primaryBtn,
+                        { paddingHorizontal: 12, paddingVertical: 8, opacity: item.inStock ? 1 : 0.5 },
+                      ]}
+                    >
+                      <Text style={styles.primaryBtnText}>{item.inStock ? '담기' : '품절'}</Text>
+                    </Pressable>
                   </View>
                 </View>
               </View>
@@ -315,153 +228,103 @@ export default function ShoppingRecommendations({ onBack }: ShoppingRecommendati
           </View>
         </View>
 
-        {/* 스타일링 제안 */}
-        <View style={styles.cardSoft}>
-          <View style={{ gap: 12 }}>
-            <Text style={styles.sectionTitle}>💡 스타일링 제안</Text>
-            <View style={{ gap: 6 }}>
-              <Text style={styles.tipText}>• 트렌치 코트 + 화이트 셔츠 + 블랙 팬츠로 클래식한 오피스룩 완성</Text>
-              <Text style={styles.tipText}>• 미니멀 백과 화이트 스니커즈로 캐주얼 다운 스타일링</Text>
-              <Text style={styles.tipText}>• 봄 시즌 레이어드 룩으로 다양한 상황에 대응 가능</Text>
-            </View>
-            <Pressable
-              style={[
-                styles.ghostBtn,
-                { borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', alignItems: 'center', paddingVertical: 10 },
-              ]}
-            >
-              <Text style={styles.ghostText}>전체 코디 세트로 구매하기</Text>
-            </Pressable>
-          </View>
-        </View>
       </ScrollView>
+
+      <BottomNavBar activeScreen="shopping" onNavigate={onNavigate} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
-
-  headerWrap: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  iconBtn: { padding: 8, borderRadius: 8 },
-
-  title: { fontSize: 20, fontWeight: '600', letterSpacing: 0.3, color: '#0B0B0B', fontFamily: 'PlayfairDisplay-SemiBold' },
-  subtitle: { fontSize: 12, color: '#6B7280', fontFamily: 'Inter', fontWeight: '300' },
-
-  screenPad: { paddingHorizontal: 24, paddingVertical: 24, gap: 24 },
-
-  searchIcon: { position: 'absolute', left: 12, top: 14 },
+  screenPad: { paddingHorizontal: 16, paddingVertical: 24, gap: 24, paddingBottom: 32 },
+  searchIcon: { position: 'absolute', left: 12, top: 14, zIndex: 1 },
   input: {
     backgroundColor: '#F9FAFB',
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     borderRadius: 8,
     paddingVertical: 10,
-    paddingLeft: 36,
-    paddingRight: 44,
+    paddingLeft: 40,
+    paddingRight: 50,
     fontSize: 14,
     color: '#111827',
-    fontFamily: 'Inter',
   },
   filterBtn: {
     position: 'absolute',
-    right: 8,
+    right: 6,
     top: 6,
     padding: 8,
     borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-
-  sectionLabel: { fontFamily: 'Inter', color: '#111827', fontWeight: '600' },
-
+  sectionLabel: { fontWeight: '600', color: '#111827' },
   chip: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  chipSm: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 99,
+    borderWidth: 1,
   },
   chipIdle: { backgroundColor: '#FFFFFF', borderColor: '#E5E7EB' },
   chipActive: { backgroundColor: '#111111', borderColor: '#111111' },
-  chipText: { color: '#111827', fontFamily: 'Inter', fontSize: 13, fontWeight: '300' },
-  chipSmText: { color: '#111827', fontFamily: 'Inter', fontSize: 12, fontWeight: '300' },
-  chipTextActive: { color: '#FFFFFF', fontWeight: '500' },
-
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#0B0B0B', fontFamily: 'PlayfairDisplay-SemiBold' },
-  countText: { fontSize: 12, color: '#6B7280', fontFamily: 'Inter', fontWeight: '300' },
-
-  // ✅ 누락되어 오류났던 스타일
+  chipText: { color: '#111827', fontSize: 13 },
+  chipTextActive: { color: '#FFFFFF', fontWeight: '600' },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-
+  sectionTitle: { fontSize: 18, fontWeight: '600' },
+  countText: { fontSize: 12, color: '#6B7280' },
   cardRow: {
+    flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
     elevation: 2,
-    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
-  thumbWrap: { width: 96, height: 128, position: 'relative', backgroundColor: '#F3F4F6' },
+  thumbWrap: { width: 96, height: 128, backgroundColor: '#F3F4F6', borderTopLeftRadius: 8, borderBottomLeftRadius: 8, overflow: 'hidden' },
   thumb: { width: '100%', height: '100%' },
+  discountBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  badgeTextWhite: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '600',
+  },
   soldoutOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-
-  cardContent: { flex: 1, padding: 12 },
-  itemName: { fontSize: 14, color: '#111827', fontFamily: 'Inter', fontWeight: '600' },
-  itemBrand: { fontSize: 12, color: '#6B7280', fontFamily: 'Inter', fontWeight: '300' },
-
-  metaText: { fontSize: 12, color: '#111827', fontFamily: 'Inter', fontWeight: '300' },
-  metaSub: { fontSize: 12, color: '#9CA3AF', fontFamily: 'Inter', fontWeight: '300' },
-  reasonText: { fontSize: 12, color: '#4B5563', fontFamily: 'Inter', fontWeight: '300' },
-
-  price: { fontSize: 14, fontFamily: 'Inter', fontWeight: '600', color: '#111827' },
-  priceStrike: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    textDecorationLine: 'line-through',
-    fontFamily: 'Inter',
-    fontWeight: '300',
+  cardContent: {
+    flex: 1,
+    padding: 12,
+    gap: 8,
   },
-
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: '#F3F4F6',
+  itemName: { fontSize: 14, fontWeight: '600' },
+  itemBrand: { fontSize: 12, color: '#6B7280' },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
   },
-  badgeText: { fontSize: 11, fontFamily: 'Inter', fontWeight: '500', color: '#111827' },
-  badgeOutline: { backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E7EB' },
-  badgeOutlineText: { fontSize: 11, fontFamily: 'Inter', fontWeight: '300', color: '#111827' },
-
-  dot: { width: 8, height: 8, borderRadius: 999 },
-
+  metaText: { fontSize: 12, fontWeight: '600', color: '#111827' },
+  metaSub: { fontSize: 12, color: '#9CA3AF' },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  reasonText: { fontSize: 12, color: '#4B5563' },
+  price: { fontSize: 14, fontWeight: '600' },
+  priceStrike: { fontSize: 12, color: '#9CA3AF', textDecorationLine: 'line-through' },
   primaryBtn: { backgroundColor: '#111111', borderRadius: 8 },
-  primaryBtnText: { color: '#FFFFFF', fontSize: 13, fontFamily: 'Inter', fontWeight: '500' },
-  ghostBtn: { backgroundColor: '#FFFFFF', borderRadius: 8 },
-  ghostText: { color: '#111827', fontSize: 13, fontFamily: 'Inter', fontWeight: '300' },
-
-  cardSoft: {
-    backgroundColor: '#F6F7F8',
-    padding: 16,
-    borderRadius: 8,
-  },
-
-  tipText: { color: '#4B5563', fontSize: 13, fontFamily: 'Inter' },
+  primaryBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
 });
